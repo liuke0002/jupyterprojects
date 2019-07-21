@@ -1,0 +1,169 @@
+私有化
+xx：公有变量——公有
+_x：单前置下划线，私有化属性或方法，from somemodule import *禁止导入，类对象和子类可以访问——其他module导入不了
+__xx：双前置下划线，避免与子类中的属性命名冲突，无法在外部直接访问（名字重整所以访问不到）——私有
+__xx__：双前后下划线，用户名字空间的魔法对象或属性。例如__init__，__不要发明这样的名字
+xx_：单后置下划线，用户避免与python关键字的冲突
+
+import
+
+from xx import yy
+import xxx
+from xx import *
+import xxx,zzz
+from xxx import yyy,mmm
+import xx as yy——起别名
+
+from imp import reload
+reload(xx)
+
+
+继承
+1.super().__init__相对于类名.__init__，在单继承上用法基本无差
+2.但在多继承上有区别，super方法能保证每个父类的方法只会执行一次，而使用类名的方法会导致方法被执行多次，具体看MRO的输出结果
+3.多继承，使用super方法，对父类的传参数，应该是由于super的算法导致的原因，必须把参数全部传递，否则会报错
+4.单继承时，使用super方法，则不能全部传递，只能传父类方法所需的参数，否则会报错
+5.多继承时，相对于使用类名.__init__方法，要把每个父类都写一遍，而使用super方法，只需写一句话便执行了全部父类的方法，这也是为何多继承需要全部传参的一个原因
+
+class Province(object):
+    #类属性
+    country='China'
+    def __init__(self,name):
+        #实例属性
+        self.name=name
+#创建一个实例对象
+obj=Province("陕西")
+#直接访问实例属性
+print(obj.name)
+#直接访问类属性
+Province.country
+
+实例方法：由对象调用，至少有一个self参数 执行实例方法时，自动将调用该方法的对象赋值给self
+类方法：由类调用，至少有一个cls参数；执行类方法时，自动将调用该方法的类复制给cls
+静态方法：由类调用，无默认参数
+In [50]: class Foo(object):
+    ...:     def __init__(self,name):
+    ...:         self,name=name
+    ...:     def ord_func(self):
+    ...:         #定义实例方法，至少有一个参数self
+    ...:         print("实例方法")
+    ...:     @classmethod
+    ...:     def class_func(cls):
+    ...:         #定义类方法，至少有一个cls参数
+    ...:         print("类方法")
+    ...:     @staticmethod
+    ...:     def static_func():
+    ...:         #定义静态方法，无默认s参数
+    ...:         print("静态方法")
+    ...:
+
+In [50]: class Foo(object):
+    ...:     def __init__(self,name):
+    ...:         self,name=name
+    ...:     def ord_func(self):
+    ...:         #定义实例方法，至少有一个参数self
+    ...:         print("实例方法")
+    ...:     @classmethod
+    ...:     def class_func(cls):
+    ...:         #定义类方法，至少有一个cls参数
+    ...:         print("类方法")
+    ...:     @staticmethod
+    ...:     def static_func():
+    ...:         #定义静态方法，无默认s参数
+    ...:         print("静态方法")
+    ...:
+
+In [51]: f=Foo("中国")
+
+In [52]: f.ord_func()
+实例方法
+
+In [53]: Foo.class_func()
+类方法
+
+In [54]: Foo.static_func()
+静态方法
+
+property属性的有两种方式
+装饰器：在方法上应用装饰器
+类属性：在类中定义值为property对象的类属性
+装饰器方式
+在类的实例方法上应用@property装饰器
+python中的类有经典类和新式类，新式类的属性比经典类的属性丰富。（如果类继承object，那么该类时新式类）
+经典类，具有一种@property装饰器
+In [1]: class Goods:
+   ...:     @property
+   ...:     def size(self):
+   ...:         return 100
+   ...:
+   ...:
+
+In [2]: obj=Goods()
+
+In [3]: ret=obj.size
+
+In [4]: print(ret)
+100
+
+
+
+新式类，具有三种@property装饰器
+In [5]: class Goods:
+   ...:     @property
+   ...:     def price(self):
+   ...:         print("@property")
+   ...:     @price.setter
+   ...:     def price(self,value):
+   ...:         print("@price.setter")
+   ...:     @price.deleter
+   ...:     def price(self):
+   ...:         print("@price.deleter")
+  
+
+property方法有四个参数
+property(fget=None, fset=None, fdel=None, doc=None)
+第一个参数是方法名，调用 对象.属性 时自动触发执行方法
+第二个参数是方法名，调用 对象.属性==XXX 时自动触发执行方法
+第三个参数是方法名，调用 del对象.属性 时自动触发执行方法
+第四个参数是方法名，调用 对象.属性.__doc__，此参数时该属性的描述信息
+In [19]: class Foo(object):
+    ...:     def get_bar(self):
+    ...:         print("getter")
+    ...:         return "laowang"
+    ...:     def set_bar(self,value):
+    ...:         print("setter")
+    ...:         return "set value"+value
+    ...:     def del_bar(self):
+    ...:         print("delter...")
+    ...:         return 'laowang'
+    ...:     BAR=property(get_bar,set_bar,del_bar,"description...")
+    
+property的应用二：设置私有属性
+
+魔法属性
+无论人或事物往往都有不按套路出牌的情况，Python的类属性也是如此，存在着一些具有特殊含义的属性
+1.__doc__ 表示类的描述信息
+2.__module__和__class__ 
+__module__ 表示当前操作的对象在哪个模块
+__class__表示当前操作的对象的类是什么
+__init__ 初始化方法，通过类创建对象时，自动触发执行
+__del__ 当对象在内存中被释放时，自动触发执行
+__call__ 对象后面加括号，触发执行
+__str__ 如果类中定义了__str__方法，那么在打印对象时，默认输出该方法的返回值
+__getitem__/__setitem__/__delitem__ 用于索引操作，如字典。
+
+
+with/上下文管理器
+任何实现了__enter__方法和__exit__方法可以称为上下文管理器，上下文管理器对象可以使用with关键字。
+open方法的返回值复制给变量f，当离开with代码块的时候，系统会自动调用f.close()方法，with的作用和使用try/finally语句时一样的。
+with open("open.txt","r") as f:
+    f.write("hello")
+ 
+
+
+
+
+
+
+
+

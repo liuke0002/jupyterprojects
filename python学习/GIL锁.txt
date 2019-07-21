@@ -1,0 +1,28 @@
+多进程可以充分使用cpu的两个内核，而多线程却不能充分使用cpu的两个内核，多线程并不能让多核CPU实现并行。
+
+GIL锁(全局解释器锁)是由于Cpython解释器导致的，他的作用是保证同一个时刻只有一个线程可以执行代码，因此造成了我们使用多线程的时候无法实现并行
+
+
+
+GIL：全局解释器锁。每个线程在执行的过程中都需要先获取GIL，保证同一时刻只有一个线程可以执行代码。
+线程释放GIL锁的情况：在IO操作等可能引起阻塞的system call之前，可以暂时释放GIL，但在执行完毕后，必须重新获取GIL Python 3.x使用计时器，执行时间达到阈值后，当前线程释放GIL，python使用多进程是可以使用多核的cpu资源的。
+
+结论：
+1.在处理科学计算 这类需要持续使用cpu的任务的时候 单线程会比多线程快
+2.在处理想IO操作等可能引起阻塞的这类任务的时候 多线程会比单线程快
+
+解决方案法 :
+    1:更换解释器 比如使用jpython(java实现的python解释器)
+    2:使用多进程完成多任务的处理
+
+
+python调用C语言lib.so库中函数func(python是一门胶水语言)
+from ctypes import *
+from threading import Thread
+
+lib=cdll.loadLibrary("./lib.so")
+t=Thread(target=lib.func)
+t.start()
+while True:
+   pass
+
